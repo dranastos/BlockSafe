@@ -108,6 +108,9 @@ contract BSAFECrowdsale is MultiOwnable {
     uint256 price;
 
     bool public isPaused = true;
+    
+    uint public presto_min;
+    uint public sto_min;
 
     modifier whenPaused() {
         require(isPaused);
@@ -133,6 +136,10 @@ contract BSAFECrowdsale is MultiOwnable {
         wallet = _wallet;
         fiat = FiatContract(0x2CDe56E5c8235D6360CCbb0c57Ce248Ca9C80909);
         status = Status.CREATED;
+        
+        presto_min = 2500000;
+        sto_min    = 1000000;
+        
     }
     
     function getPrice(uint256 usd) constant returns(uint256) {
@@ -174,9 +181,9 @@ contract BSAFECrowdsale is MultiOwnable {
     }
     
     function buy(uint256 _wei) internal whenNotPaused{
-        
         require( whitelist.checkAddress(msg.sender) == true );
-        if(status==Status.PRESTO) require ( msg.value > ( getPrice(1000000).mul(10**18)) );
+        if(status==Status.PRESTO) require ( msg.value > ( getPrice(presto_min).mul(10**18)) );
+        if(status==Status.STO)    require ( msg.value > ( getPrice(sto_min).mul(10**18)) );
         uint256 tokensAmount = calcTokens(_wei);
         token.transfer(msg.sender, tokensAmount.mul(10**8));
         emit Purchase(msg.sender, tokensAmount);
