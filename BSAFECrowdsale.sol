@@ -221,5 +221,9 @@ contract BSAFECrowdsale is MultiOwnable {
         emit Withdrawal(_to, _amount);
     }
     
+    function updateSTOPrice ( uint _newprice ) public onlyOwner {
+        sto_min = _newprice;
+    }
+    
      
 }
