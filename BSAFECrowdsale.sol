@@ -182,8 +182,8 @@ contract BSAFECrowdsale is MultiOwnable {
     
     function buy(uint256 _wei) internal whenNotPaused{
         require( whitelist.checkAddress(msg.sender) == true );
-        if(status==Status.PRESTO) require ( msg.value >  getPrice(presto_min) );
-        if(status==Status.STO)    require ( msg.value >  getPrice(sto_min)    );
+        if(status==Status.PRESTO) require ( msg.value >=  getPrice(presto_min) );
+        if(status==Status.STO)    require ( msg.value >=  getPrice(sto_min)    );
         uint256 tokensAmount = calcTokens(_wei);
         token.transfer(msg.sender, tokensAmount.mul(10**8));
         emit Purchase(msg.sender, tokensAmount);
