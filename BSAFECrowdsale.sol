@@ -111,6 +111,9 @@ contract BSAFECrowdsale is MultiOwnable {
     
     uint public presto_min;
     uint public sto_min;
+    
+    uint public TokensSold;
+    uint public EtherRaised;
 
     modifier whenPaused() {
         require(isPaused);
@@ -185,6 +188,10 @@ contract BSAFECrowdsale is MultiOwnable {
         if(status==Status.PRESTO) require ( msg.value >=  getPrice(presto_min) );
         if(status==Status.STO)    require ( msg.value >=  getPrice(sto_min)    );
         uint256 tokensAmount = calcTokens(_wei);
+	
+	TokensSold = TokensSold + tokensAmount;
+	EtherRaised = EtherRaised + msg.value;
+	
         token.transfer(msg.sender, tokensAmount.mul(10**8));
         emit Purchase(msg.sender, tokensAmount);
     }
