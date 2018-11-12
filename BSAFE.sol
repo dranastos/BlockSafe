@@ -1,4 +1,4 @@
-pragma solidity ^ 0.4 .21;
+pragma solidity ^ 0.4 .25;
 
 contract ERC223ReceivingContract { 
 /**
@@ -92,7 +92,7 @@ contract BSAFE is ERC20  {
     event Burn(address indexed from, uint256 value);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function BSAFE() {
+    function constructor() {
 
         uint256 _initialSupply = 12000000000000000 ; 
         uint8 decimalUnits = 8;
@@ -102,15 +102,16 @@ contract BSAFE is ERC20  {
         name = "BlockSafe"; // Set the name for display purposes
         symbol = "BSAFE"; // Set the symbol for display purposes
         decimals = decimalUnits; // Amount of decimals for display purposes
+        emit Transfer( address(0),  msg.sender, _initialSupply);
     }
 
    
 
 
 
-    function balanceOf(address tokenHolder) constant returns(uint256) {
+    function balanceOf(address _tokenHolder) constant returns(uint256) {
 
-        return balanceOf[tokenHolder];
+        return balanceOf[_tokenHolder];
     }
 
     function totalSupply() constant returns(uint256) {
@@ -121,7 +122,7 @@ contract BSAFE is ERC20  {
 
     function transfer(address _to, uint256 _value) returns(bool ok) {
         
-        if (_to == 0x0) throw; // Prevent transfer to 0x0 address. Use burn() instead
+        require (_to != 0x0); // Prevent transfer to 0x0 address. Use burn() instead
         if (balanceOf[msg.sender] < _value) throw; // Check if the sender has enough
         bytes memory empty;
         
@@ -133,13 +134,13 @@ contract BSAFE is ERC20  {
             receiver.tokenFallback(msg.sender, _value, empty);
         }
         
-        Transfer(msg.sender, _to, _value); // Notify anyone listening that this transfer took place
+        emit Transfer(msg.sender, _to, _value); // Notify anyone listening that this transfer took place
         return true;
     }
     
      function transfer(address _to, uint256 _value, bytes _data ) returns(bool ok) {
         
-        if (_to == 0x0) throw; // Prevent transfer to 0x0 address. Use burn() instead
+        require (_to != 0x0); // Prevent transfer to 0x0 address. Use burn() instead
         if (balanceOf[msg.sender] < _value) throw; // Check if the sender has enough
         bytes memory empty;
         
@@ -151,7 +152,7 @@ contract BSAFE is ERC20  {
             receiver.tokenFallback(msg.sender, _value, _data);
         }
         
-        Transfer(msg.sender, _to, _value, _data); // Notify anyone listening that this transfer took place
+        emit Transfer(msg.sender, _to, _value, _data); // Notify anyone listening that this transfer took place
         return true;
     }
     
@@ -203,36 +204,36 @@ contract BSAFE is ERC20  {
     /* A contract attempts to get the coins */
     function transferFrom(address _from, address _to, uint256 _value) returns(bool success) {
         
-        if (_from == 0x0) throw; // Prevent transfer to 0x0 address. Use burn() instead
+        require (_to != 0x0); // Prevent transfer to 0x0 address. Use burn() instead
         if (balanceOf[_from] < _value) throw; // Check if the sender has enough
         if (balanceOf[_to] + _value < balanceOf[_to]) throw; // Check for overflows
         if (_value > allowance[_from][msg.sender]) throw; // Check allowance
         balanceOf[_from] = balanceOf[_from].sub( _value ); // Subtract from the sender
         balanceOf[_to] = balanceOf[_to].add( _value ); // Add the same to the recipient
         allowance[_from][msg.sender] = allowance[_from][msg.sender].sub( _value ); 
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         return true;
     }
   
     function burn(uint256 _value) returns(bool success) {
         
         if (balanceOf[msg.sender] < _value) throw; // Check if the sender has enough
-        if ( (totalSupply - _value) <  ( initialSupply / 2 ) ) throw;
+      
         balanceOf[msg.sender] = balanceOf[msg.sender].sub( _value ); // Subtract from the sender
         totalSupply = totalSupply.sub( _value ); // Updates totalSupply
-        Burn(msg.sender, _value);
+        emit Burn(msg.sender, _value);
         return true;
     }
 
    function burnFrom(address _from, uint256 _value) returns(bool success) {
         
-        if (_from == 0x0) throw; // Prevent transfer to 0x0 address. Use burn() instead
+        require (_from != 0x0); // Prevent transfer to 0x0 address. Use burn() instead
         if (balanceOf[_from] < _value) throw; 
         if (_value > allowance[_from][msg.sender]) throw; 
         balanceOf[_from] = balanceOf[_from].sub( _value ); 
         allowance[_from][msg.sender] = allowance[_from][msg.sender].sub( _value ); 
         totalSupply = totalSupply.sub( _value ); // Updates totalSupply
-        Burn(_from, _value);
+        emit Burn(_from, _value);
         return true;
     }
 
