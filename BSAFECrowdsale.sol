@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.25;
 
 library SafeMath {
     function mul(uint256 a, uint256 b) internal pure returns(uint256) {
@@ -111,9 +111,6 @@ contract BSAFECrowdsale is MultiOwnable {
     
     uint public presto_min;
     uint public sto_min;
-    
-    uint public TokensSold;
-    uint public EtherRaised;
 
     modifier whenPaused() {
         require(isPaused);
@@ -133,20 +130,22 @@ contract BSAFECrowdsale is MultiOwnable {
      * @param _token Address of token to sale
      * @param _wallet Address to withdraw funds
      */
-    constructor(address _token, address _wallet, address _whitelist) public {
+     // use 0x2CDe56E5c8235D6360CCbb0c57Ce248Ca9C80909 for _fiatcontract
+     // deploy whitelist contract first in order to properly add whitelist contract
+    constructor(address _token, address _wallet, address _whitelist, address _fiatcontract) public {
         token = Token(_token);
         whitelist = WhiteList(_whitelist);
         wallet = _wallet;
-        fiat = FiatContract(0x2CDe56E5c8235D6360CCbb0c57Ce248Ca9C80909);
+        fiat = FiatContract( _fiatcontract ); 
         status = Status.CREATED;
         
         presto_min = 2500000;
-        sto_min    = 1000000;
+        sto_min    =  100000;
         
     }
     
-    function getPrice(uint256 usd) constant returns(uint256) {
-        return usd * fiat.USD(0);
+    function getPrice(uint256 _usd) constant returns(uint256) {
+        return _usd * fiat.USD(0);
     }
     
     function startPreSTOSale() public onlyOwner {
@@ -185,13 +184,10 @@ contract BSAFECrowdsale is MultiOwnable {
     
     function buy(uint256 _wei) internal whenNotPaused{
         require( whitelist.checkAddress(msg.sender) == true );
+	require (  status != Status.FINISHED ) ;
         if(status==Status.PRESTO) require ( msg.value >=  getPrice(presto_min) );
         if(status==Status.STO)    require ( msg.value >=  getPrice(sto_min)    );
         uint256 tokensAmount = calcTokens(_wei);
-	
-	TokensSold = TokensSold + tokensAmount;
-	EtherRaised = EtherRaised + msg.value;
-	
         token.transfer(msg.sender, tokensAmount.mul(10**8));
         emit Purchase(msg.sender, tokensAmount);
     }
